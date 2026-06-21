@@ -12,6 +12,7 @@ dependencies = [
     "langchain-qdrant>=1.0.0",
     "langchain-text-splitters>=1.0.0",
     "pypdf>=6.0.0",
+    "python-dotenv>=1.2.2",
     "qdrant-client>=1.15.0",
 ]
 
