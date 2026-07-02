@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.python-version-local
+
+# Environment
+.env
+.env.local
+
+# uv
+uv.lock
+
+# LangGraph
+.langgraph_api/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
