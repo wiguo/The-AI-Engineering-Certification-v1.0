@@ -1,0 +1,24 @@
+[
+  {
+    "provider": "fireworks",
+    "queries": 8,
+    "input_tokens": 21238,
+    "output_tokens": 7622,
+    "total_cost_usd": 0.003773,
+    "cost_per_query_usd": 0.000472,
+    "cost_per_1M_queries_usd": 471.66,
+    "median_gen_seconds": 1.83,
+    "max_gen_seconds": 72.95
+  },
+  {
+    "provider": "openai",
+    "queries": 8,
+    "input_tokens": 21238,
+    "output_tokens": 376,
+    "total_cost_usd": 0.009097,
+    "cost_per_query_usd": 0.001137,
+    "cost_per_1M_queries_usd": 1137.1,
+    "median_gen_seconds": 1.27,
+    "max_gen_seconds": 2.8
+  }
+]

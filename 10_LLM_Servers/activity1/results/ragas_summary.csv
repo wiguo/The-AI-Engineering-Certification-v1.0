@@ -1,0 +1,5 @@
+,fireworks,openai
+context_precision,0.9549,0.9687
+context_recall,1.0,1.0
+faithfulness,0.9167,1.0
+answer_correctness,0.8458,0.8371

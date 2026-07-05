@@ -1,0 +1,34 @@
+[
+  {
+    "question": "What are the four age-related feline life stages and their age ranges?",
+    "ground_truth": "The four age-related life stages are: kitten (birth up to 1 year), young adult (1 year through 6 years), mature adult (7 to 10 years), and senior (over 10 years). A fifth, end-of-life stage can occur at any age."
+  },
+  {
+    "question": "How often should cats be examined by a veterinarian?",
+    "ground_truth": "A minimum of annual examinations is recommended for all cats, with increasing frequency as appropriate for individual needs. Senior cats should be seen at least every 6 months, and more frequently if they have chronic conditions."
+  },
+  {
+    "question": "What are the core vaccines for cats?",
+    "ground_truth": "The core vaccines are rabies virus, feline herpesvirus type 1 (FHV-1), feline calicivirus (FCV), and feline panleukopenia virus (FPV). Feline leukemia virus (FeLV) vaccination is also considered core for kittens and young cats."
+  },
+  {
+    "question": "What is the rule of thumb for the number of litter boxes in a multi-cat household?",
+    "ground_truth": "One litter box for each cat plus one additional box, or one litter box for each social group plus one additional box if the number of social groups is known."
+  },
+  {
+    "question": "What type of litter do most adult cats prefer?",
+    "ground_truth": "Most adult cats prefer clumping litter, and most cats prefer plain unscented litters. Some cats may find scented litters significantly aversive. Cats also tend to prefer larger litter boxes."
+  },
+  {
+    "question": "Which body measures should be evaluated and recorded during a cat's physical examination?",
+    "ground_truth": "Body weight, body condition score (BCS), and muscle condition score (MCS) should be evaluated and recorded at all life stages during the physical examination."
+  },
+  {
+    "question": "Should cats be punished for unwanted behavior?",
+    "ground_truth": "No. Cats should not be punished. Yelling, startling, spraying with water, or physical punishment only scares the cat and may lead to the cat running away or responding aggressively. Cats should never be subjected to shock collars."
+  },
+  {
+    "question": "When should cats be revaccinated for feline leukemia virus (FeLV)?",
+    "ground_truth": "FeLV revaccination is recommended 12 months after the last dose in the kitten series, and then annually for individual cats at high risk."
+  }
+]
