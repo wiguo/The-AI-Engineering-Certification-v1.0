@@ -428,7 +428,9 @@ Why does LangSmith deploy your agent as an API backend only, and why do you stil
 
 #### Answer
 
-_(insert your answer here)_
+LangSmith's deployment platform is purpose-built for **running agent workloads**: it hosts your compiled LangGraph graphs behind a standard API (threads, runs, assistants, streaming), and layers on the infrastructure agents specifically need — persistence/checkpointing for conversation state, background run execution, tracing, and monitoring. It is not a general-purpose web host: it doesn't serve HTML, run a JavaScript bundler, handle static assets, or manage CDN/edge delivery.
+
+A chat UI is a completely different kind of workload — static assets and server-rendered pages that belong on a web-optimized platform like Vercel (CDN edge caching, Next.js build pipeline, instant global distribution). Separating them also decouples the lifecycles: you can redeploy the UI without touching the agent (and vice versa), scale them independently, and point multiple frontends (web, mobile, Slack bot) at the same agent API. The frontend talks to the agent through a thin `/api` proxy route, so the two deployments stay cleanly separated.
 
 ### Question #2
 
@@ -436,7 +438,9 @@ Why should the LangSmith API key live in a Next.js API route (server-side) inste
 
 #### Answer
 
-_(insert your answer here)_
+Anything shipped to the browser is **public**: a key embedded in client-side JavaScript (or a `NEXT_PUBLIC_*` env var) can be read by anyone via DevTools → Network/Sources, and bots actively scrape deployed sites for exactly these credentials. The LangSmith API key is a powerful secret — whoever holds it can invoke your deployed agents (running up your OpenAI/LLM bill), read your traces (which may contain user conversations), and touch anything else in your workspace.
+
+The Next.js API passthrough route (`app/api/[...path]/route.ts`) keeps the key **server-side only**: the browser calls your own `/api/*` endpoint with no credentials, and the route injects the `LANGSMITH_API_KEY` when forwarding the request to the LangSmith deployment URL. The key exists only in Vercel's server environment, never in the client bundle. As a bonus, the proxy is a single choke point where you can later add rate limiting, user authentication, or request validation before anything reaches your (billable) agent.
 
 ## Activity 1: Build a Helpfulness Loop in Production
 
