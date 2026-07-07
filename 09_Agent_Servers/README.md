@@ -375,6 +375,14 @@ Visit your Vercel URL, send a chat message, and confirm:
 
 A deployed agent on LangSmith **and** a live website on Vercel that uses it.
 
+> **✅ Shipped (free-tier path):** the frontend is live at
+> **https://frontend-liard-ten-gkl1lw34b1.vercel.app**. The agent is deployed with
+> `langgraph up` (self-hosted Docker: Postgres + Redis + API on `localhost:8123`)
+> instead of LangSmith cloud, which requires a paid Plus plan — so the public site
+> renders but its chat can only reach the agent when a public tunnel to the local
+> server is running. The full working chat is demoed locally (`localhost:3000`),
+> with traces in the LangSmith projects `s09-dev-studio` and `s09-production`.
+
 ### Deliverables
 
 - A short Loom of either:
