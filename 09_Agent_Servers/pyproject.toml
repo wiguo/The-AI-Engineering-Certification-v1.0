@@ -21,3 +21,8 @@ dependencies = [
     "arxiv>=2.1.0",
     "python-dotenv>=1.2.2",
 ]
+
+# Only `app` is the Python package; `data` and `frontend` would otherwise break
+# setuptools auto-discovery when langgraph up pip-installs this project in Docker.
+[tool.setuptools.packages.find]
+include = ["app*"]

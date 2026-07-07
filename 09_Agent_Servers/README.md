@@ -446,6 +446,26 @@ The Next.js API passthrough route (`app/api/[...path]/route.ts`) keeps the key *
 
 Build an `agent_with_helpfulness` graph that adds a post-response helpfulness check: after the agent answers, a judge model decides whether the response is helpful, and if not, the graph loops back for another attempt (with a safe loop limit). Register it in `langgraph.json`, deploy it, then compare LangSmith traces for queries that pass vs. fail the helpfulness check. Does the retry loop behave differently in Studio vs. production?
 
+### ✅ Results
+
+**Graph** ([`app/graphs/agent_with_helpfulness.py`](./app/graphs/agent_with_helpfulness.py)): after the agent responds without tool calls, a `helpfulness` judge node asks the chat model for a Y/N verdict on the response vs. the initial query and appends it as a `HELPFULNESS:Y|N` marker message. `N` routes back to the agent for another attempt; a `LOOP_MESSAGE_LIMIT = 10` message-count guard emits `HELPFULNESS:END` to break runaway loops. Registered in `langgraph.json` as graph `agent_with_helpfulness` / assistant `agent_helpful`.
+
+**Deployment**: LangSmith cloud deploy (`langgraph deploy`) requires a paid Plus plan, so production is the free self-hosted path — `uv run langgraph up` — which runs the same graph in a production-grade Docker stack (Postgres for checkpoints/threads + Redis-backed task queue) on `http://localhost:8123`, while `langgraph dev` (in-memory, port 2024) serves Studio. One packaging fix was needed for the Docker build: `[tool.setuptools.packages.find] include = ["app*"]` in `pyproject.toml`, because the image build pip-installs the project and setuptools auto-discovery chokes on the `data/` and `frontend/` folders.
+
+**Trace comparison** (`activity1_traces.py`; dev traces → LangSmith project `s09-dev-studio`, production → `s09-production`). Judge verdict sequences observed:
+
+| Query | dev (Studio) | production (Docker) |
+|---|---|---|
+| "How often should senior cats see the vet?" | `Y` — passes first try | `Y` — passes first try |
+| "Weather in Zurich 37 days from now at 3:14 pm?" | `N, N, Y` (passed on retry) *and* `N, N, N, N, END` on a re-run | `N, N, N, N, END` |
+| "Summarize page 37 of the PDF I uploaded yesterday." | `N, ..., END` (loop limit) | `N, N, N, N, END` (loop limit) |
+
+**Does the retry loop behave differently in Studio vs. production?** The *graph logic* is identical — the same compiled `StateGraph` runs in both — and both enforce the loop limit the same way. The differences observed:
+
+1. **Loop depth is nondeterministic, not runtime-dependent.** The same query produced `N, N, Y` (pass on 2nd retry) and `N, N, N, N, END` (loop-limit exhaustion) on the *same* dev server across runs. Each retry regenerates the answer and re-judges it, so verdict sequences vary run to run — the dev/production difference in the table is sampling noise, not a platform behavior difference.
+2. **The runtimes differ operationally.** `langgraph dev` runs in-memory with no durable checkpointer (it even warns `durability has no effect when no checkpointer is present`) and hot-reloads on file changes; `langgraph up` persists threads/checkpoints in Postgres and executes runs through a Redis-backed worker queue, so loop state survives restarts and runs queue under load.
+3. **Observability differs.** In Studio you can watch the loop live, inspect each `HELPFULNESS:` marker, interrupt, and fork at the judge node. In production the loop is opaque at full speed — the LangSmith trace is the only window into how many retries a query burned, which is exactly why tracing matters: every `N` verdict costs a full extra agent + judge round (~2 LLM calls), so the loop-limit guard is a billing/latency safety mechanism, not just a correctness one.
+
 ## Advanced Activity: Auth and Custom Routes
 
 Research [LangSmith Deployments custom routes](https://github.com/langchain-samples/lsd-custom-route-react-ui) and describe how you could add authentication so each user only sees their own threads. Optionally implement a simple auth gate on your Vercel frontend.
