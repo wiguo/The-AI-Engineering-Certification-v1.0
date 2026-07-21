@@ -12,7 +12,7 @@
 
 This week we extend text RAG to **images + text in one pipeline** using **Vision-Language Models**. You'll use a VLM two different ways — as an *ingestion parser* that turns charts into searchable chunks, and as a *query-time reader* that reads exact numbers straight off the pixels. In between, you'll build and compare **three cross-modal retrieval strategies** on **Qdrant**, then extend the whole pipeline to **video with timestamp citations**. Everything runs against a tiny CC0 synthetic dataset (ACME Robotics FY2024) that ships in `./data` — the key numbers exist *only in the chart pixels*, so you can prove your pipeline really reads images.
 
-The notebook is `multimodal_rag_vlm.ipynb`, split into two breakout rooms of ~25 minutes each. Everything you need to answer the questions is written in the notebook's explanations — read as you run.
+The notebook is `multimodal_rag.ipynb`, split into two breakout rooms of ~25 minutes each. Everything you need to answer the questions is written in the notebook's explanations — read as you run.
 
 - 🤝 Breakout Room #1: Parsing & Cross-Modal Retrieval (Sections 0–5)
   - Get set up: run `uv sync` in this folder, copy `.env.example` to `.env` and add your `OPENAI_API_KEY`, then open the notebook with this folder's environment (`uv run jupyter lab`, or select the `.venv` kernel in Cursor/VS Code)
@@ -33,8 +33,52 @@ A fully-run multi-modal RAG notebook that retrieves chart images from text quest
 
 ### Deliverables
 
-- Your completed `multimodal_rag_vlm.ipynb` — every cell executed, all four ❓ questions answered, and both 🏗️ activities done with your observations filled in
+- Your completed `multimodal_rag.ipynb` — every cell executed, all four ❓ questions answered, and both 🏗️ activities done with your observations filled in
 - A five-minute-or-less Loom video walking through your pipeline, including one answer the model read from chart pixels and one video answer with a timestamp citation
+
+## Homework Completion
+
+The detailed answers and runnable activity cells are in `multimodal_rag.ipynb`. This section records the completed homework in a review-friendly form.
+
+### Question 1 — Why image retrieval needs workarounds
+
+LangChain's normal embedding interface accepts text, so a multi-modal chat model's ability to inspect an image does not automatically make raw image pixels searchable. The notebook demonstrates three workarounds:
+
+1. **Caption → text embeddings (Strategy A):** parse each image into a caption with a VLM, then embed captions and documents with the same text model.
+2. **Unified CLIP embeddings (Strategy B):** encode pixels with CLIP's image tower, directly upsert the resulting vectors into Qdrant, and wrap CLIP's text tower for query embeddings.
+3. **Separate stores + RRF (Strategy C):** search text with a text embedder and images with CLIP, then fuse the two ranked lists.
+
+### Question 2 — Strategy B's two weaknesses
+
+CLIP has a **modality gap**: in a mixed collection, a text query may sit closer to mediocre text chunks than to the correct image. Modality-filtered search or Strategy C's separate stores compensate for this ranking problem. CLIP is also a semantic matcher rather than a dependable OCR/chart reader, so it may locate the APAC latency chart without extracting `240 ms`. The generation stage compensates by sending the retrieved chart's original pixels to the VLM.
+
+### Question 3 — Why generation needs the original pixels
+
+An ingestion caption is a lossy search aid. It may omit an exact value, label, legend relationship, or table cell, and it may contain a parsing error. Reloading the image through `source_path` gives the VLM the authoritative evidence: captions help find a figure, while the pixels ground the exact answer and citation.
+
+### Question 4 — Why Strategy C uses RRF
+
+Similarity scores from the OpenAI text embedder and CLIP are not calibrated or directly comparable; each model has its own vector space and score distribution. Sorting their raw scores could systematically favor one modality. Reciprocal Rank Fusion uses rank positions instead, creating a scale-independent merge that rewards highly ranked evidence from either list.
+
+### Activity 1 — Probe all three retrieval strategies
+
+The notebook now tests:
+
+- Visual phrasing: **“Show me the pie chart that breaks down ACME's cloud spending.”** Target: `fig_cloud_cost.png`.
+- Factual phrasing: **“Which quarter posted the lowest revenue, and what was the amount?”** Target: `fig_revenue_quarterly.png`.
+
+Observed results: Strategy A retrieved both target images at rank 1; Strategy B missed both images and returned only text documents; Strategy C retrieved both images at rank 2 after related text evidence. This clearly exposed Strategy B's unified-store modality gap. Exact revenue must still be read from pixels at generation time.
+
+### Activity 2 — Extend retrieval evaluation
+
+The evaluation set now includes two additional gold cases:
+
+- Text: **“Which market segment and geography did ACME prioritize in FY2024?”** → `doc_gtm_strategy.md`.
+- Image: **“What was ACME's lowest quarterly revenue in 2024?”** → `fig_revenue_quarterly.png`.
+
+The baseline recall@3 scores were A = `1.00`, B = `0.25`, and C = `1.00`. With the two new cases they became A = `1.00`, B = `0.30`, and C = `1.00`. All strategies retrieved the new text case; A and C retrieved the new image case, while B missed it. The per-question diagnostics show that B's `+0.05` improvement came from the text hit rather than improved image retrieval.
+
+> **Execution status:** completed successfully. The notebook was run top-to-bottom in the Session 14 virtual environment, and its outputs are saved in `multimodal_rag.ipynb`. The local `.env` remains Git-ignored and must never be committed.
 
 # Share 🚀
 
@@ -64,7 +108,7 @@ Feel free to reach out if you're curious or would like to collaborate on similar
 
 Follow these steps to prepare and submit your homework:
 
-1. Complete both breakout rooms in `multimodal_rag_vlm.ipynb`, running every cell top to bottom
+1. Complete both breakout rooms in `multimodal_rag.ipynb`, running every cell top to bottom
 2. Respond to the four questions in the notebook (There are two at the end of each Breakout Room section)
 3. Complete the activities in the notebook (There is one at the end of each Breakout Room section)
 4. Record a Loom video walking through your completed notebook
